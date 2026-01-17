@@ -1,0 +1,11 @@
+# Создаем проект
+npm create vite@latest numene-system -- --template react
+
+# Переходим в директорию
+cd numene-system
+
+# Устанавливаем критические зависимости
+# @tma.js/sdk - официальный SDK для Telegram Mini Apps
+# framer-motion - для сложных анимаций интерфейса
+# sass - для удобной стилизации
+npm install @tma.js/sdk framer-motion sass lucide-react classnames
