@@ -1,282 +1,46 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NUMENE TERMINAL</title>
-    
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* БАЗОВЫЕ СТИЛИ ТЕРМИНАЛА */
-        body {
-            font-family: 'JetBrains Mono', monospace;
-            background-color: #050505; /* Глубокий черный */
-            color: #00FF41; /* Матричный зеленый */
-            overflow-x: hidden; /* Запрет горизонтальной прокрутки */
-            -webkit-tap-highlight-color: transparent; /* Убирает синюю подсветку при клике */
-        }
-
-        /* ЭФФЕКТ СКАНЕРА (Зеленая линия) */
-       .scan-line {
-            width: 100%;
-            height: 2px;
-            background: rgba(0, 255, 65, 0.5);
-            position: fixed;
-            top: 0;
-            left: 0;
-            animation: scan 3s linear infinite;
-            pointer-events: none;
-            z-index: 50;
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
-        }
-        @keyframes scan {
-            0% { top: -10%; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 110%; opacity: 0; }
-        }
-
-        /* ЭФФЕКТ ГЛИТЧА (Помехи) */
-       .glitch-text {
-            position: relative;
-            animation: glitch 2s infinite;
-        }
-        @keyframes glitch {
-            0% { transform: skew(0deg); }
-            20% { transform: skew(-2deg); }
-            21% { transform: skew(2deg); }
-            22% { transform: skew(0deg); }
-            100% { transform: skew(0deg); }
-        }
-
-        /* КНОПКА (Киберпанк стиль) */
-       .btn-primary {
-            background: transparent;
-            color: #00FF41;
-            border: 1px solid #00FF41;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-       .btn-primary:active {
-            background: #00FF41;
-            color: #000;
-            box-shadow: 0 0 15px #00FF41;
-        }
-        
-        /* Стили для заблокированного состояния */
-       .locked-state {
-            filter: blur(4px);
-            opacity: 0.3;
-            pointer-events: none;
-            transition: all 0.8s ease;
-        }
-       .unlocked-state {
-            filter: blur(0);
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        /* Анимация мигания курсора */
-       .cursor-blink {
-            animation: blink 1s step-end infinite;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NUMENE Mini App</title>
+  <!-- Цвета для статус-бара/тулбара и ссылка на manifest -->
+  <meta name="theme-color" content="#f5e1a4">
+  <link rel="manifest" href="manifest.json">
+  <!-- Подключаем CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="antialiased min-h-screen flex flex-col selection:bg-green-900 selection:text-white">
+<body>
+  <!-- Экран загрузки (Boot) -->
+  <div id="boot">
+    <h1>NUMENE</h1>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <p id="boot-text">Загрузка 0%</p>
+  </div>
 
-    <div class="scan-line"></div>
+  <!-- Экран терминала -->
+  <div id="terminal">
+    <div id="terminal-content">
+      <!-- Здесь будем выводить текст как в консоли -->
+      <pre id="terminalText"></pre>
+      <!-- Мерцающий курсор -->
+      <span id="cursor">█</span>
+    </div>
+  </div>
 
-    <header class="p-4 border-b border-green-900/50 flex justify-between items-center sticky top-0 bg-[#050505]/90 z-40 backdrop-blur-sm">
-        <div class="text-lg font-bold tracking-widest glitch-text">NUMENE<span class="cursor-blink">_</span></div>
-        <div id="status-indicator" class="text-[10px] border border-red-900 px-2 py-1 text-red-500 bg-red-900/10">
-            NO SIGNAL
-        </div>
-    </header>
+  <!-- Экран «Puzzle» с вводом кода -->
+  <div id="puzzle">
+    <div id="puzzle-content">
+      <p>Введите код доступа:</p>
+      <input id="codeInput" type="text" placeholder="Код доступа" autocomplete="off">
+      <button id="submitBtn">Отправить</button>
+      <p id="result"></p>
+    </div>
+  </div>
 
-    <main class="flex-grow p-4 relative flex flex-col gap-6">
-        
-        <section id="auth-section" class="border border-green-900 bg-green-900/5 p-4 relative overflow-hidden transition-all duration-500">
-            <div class="absolute top-0 right-0 bg-green-900/20 px-2 text-[9px] text-green-600">SYS.AUTH.V.2.0</div>
-            
-            <div class="space-y-2 mb-6 text-sm">
-                <p>> DETECTING HARDWARE KEY...</p>
-                <p id="console-line-2" class="opacity-50">> WAITING FOR NFC SIGNAL...</p>
-            </div>
-
-            <button onclick="manualUnlock()" class="btn-primary w-full py-4 font-bold text-xs hover:bg-green-900/20">
-               
-            </button>
-            <p class="text-[10px] text-gray-600 mt-2 text-center">TAP PHONE TO PCB KEY TO BYPASS</p>
-        </section>
-
-        <section id="shop-section" class="hidden opacity-0 transition-opacity duration-1000 transform translate-y-4">
-            
-            <div class="flex justify-between items-end mb-2 pb-2 border-b border-gray-800">
-                <div class="text-[10px] text-gray-500">DROP: PROTOCOL_ORIGIN</div>
-                <div class="text-[10px] text-green-500 animate-pulse">LIVE STOCK: <span id="stock-count">48</span>/50</div>
-            </div>
-
-            <div class="border border-gray-800 bg-[#0a0a0a]">
-                <div class="aspect-[4/5] bg-gray-900 relative overflow-hidden group">
-                    <div class="absolute inset-0 flex items-center justify-center text-gray-700 text-xs tracking-widest">
-                       
-                    </div>
-                    <img src="https://dummyimage.com/600x800/111/0f0.png&text=THE+SHELL" 
-                         class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity group-hover:opacity-100 transition-opacity duration-500">
-                    
-                    <div class="absolute top-2 left-2 bg-black border border-green-900 text-green-500 text-[9px] px-2 py-1">
-                        FARADAY_SHIELD_INSIDE
-                    </div>
-                </div>
-
-                <div class="p-4 space-y-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-white mb-1">THE SHELL</h2>
-                        <p class="text-xs text-gray-500">HEAVYWEIGHT COTTON // 500GSM</p>
-                        <p class="text-xs text-gray-500">SIGNAL BLOCKING POCKET</p>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2 border-t border-gray-800">
-                        <span class="text-lg font-bold">24,900 ₽</span>
-                        <button onclick="buyItem()" class="bg-[#00FF41] text-black font-bold px-6 py-2 text-sm hover:bg-white transition-colors">
-                            ACQUIRE >
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="mt-auto pt-8 text-[10px] text-gray-600 font-mono space-y-1">
-            <p>> USER_ID: <span id="user-id" class="text-gray-400">...</span></p>
-            <p>> CONNECTION: <span class="text-green-900">SECURE (TLS 1.3)</span></p>
-            <p>> SERVER TIME: <span id="timer">00:00:00</span></p>
-        </section>
-
-    </main>
-
-    <script>
-        // 1. Инициализация Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Раскрыть на весь экран
-        
-        // Настраиваем цвета под тему (чтобы не было белых полос)
-        tg.setHeaderColor('#050505');
-        tg.setBackgroundColor('#050505');
-
-        // 2. Получение данных пользователя
-        const userIdElement = document.getElementById('user-id');
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            userIdElement.innerText = tg.initDataUnsafe.user.id;
-        } else {
-            userIdElement.innerText = "GHOST_MODE";
-        }
-
-        // 3. Часы (для атмосферы)
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('timer').innerText = now.toISOString().split('T').[1]split('.');
-        }, 1000);
-
-        // 4. ГЛАВНАЯ ЛОГИКА: Проверка, как открыли приложение
-        // start_param передается, если открыли по ссылке t.me/bot?startapp=...
-        function checkStartParam() {
-            const startParam = tg.initDataUnsafe.start_param;
-            
-            // Если в ссылке есть кодовое слово 'key_activated' (зашитое в NFC метку)
-            if (startParam === 'key_activated') {
-                console.log("Hardware Key Detected!");
-                unlockInterface(true); // Мгновенная разблокировка
-            } else {
-                console.log("Manual Login Required");
-                // Ничего не делаем, ждем нажатия кнопки
-            }
-        }
-
-        // Функция разблокировки интерфейса
-        function unlockInterface(isInstant) {
-            const status = document.getElementById('status-indicator');
-            const authSection = document.getElementById('auth-section');
-            const shopSection = document.getElementById('shop-section');
-
-            // Функция смены статуса
-            const setVerified = () => {
-                status.innerText = "KEY VERIFIED";
-                status.className = "text-[10px] border border-[#00FF41] px-2 py-1 text-black bg-[#00FF41] font-bold shadow-[0_0_10px_#00FF41]";
-                
-                // Скрываем блок входа
-                authSection.style.display = 'none';
-                
-                // Показываем магазин
-                shopSection.classList.remove('hidden');
-                // Небольшая задержка для CSS анимации opacity
-                setTimeout(() => {
-                    shopSection.classList.remove('opacity-0');
-                    shopSection.classList.remove('translate-y-4');
-                }, 50);
-
-                // Вибрация успеха (если поддерживается)
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
-            };
-
-            if (isInstant) {
-                setVerified();
-            } else {
-                // Имитация задержки "сканирования" для ручного режима
-                setTimeout(setVerified, 1500);
-            }
-        }
-
-        // Ручной вход (Кнопка "INITIATE MANUAL SCAN")
-        function manualUnlock() {
-            const btn = document.querySelector('button');
-            const consoleLine = document.getElementById('console-line-2');
-            
-            // Анимация текста
-            btn.innerText = "SCANNING...";
-            btn.classList.add('animate-pulse');
-            consoleLine.innerText = "> HANDSHAKE INITIATED...";
-            consoleLine.classList.remove('opacity-50');
-            consoleLine.classList.add('text-white');
-
-            // Вибрация нажатия
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-
-            unlockInterface(false);
-        }
-
-        // Логика покупки
-        function buyItem() {
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.selectionChanged();
-            }
-            
-            // Показываем нативное подтверждение Telegram
-            tg.showPopup({
-                title: 'CONFIRM ORDER',
-                message: 'Initiate secure transaction for THE SHELL (Protocol: Origin)?\nPrice: 24,900 RUB',
-                buttons:
-            }, function(btnId) {
-                if (btnId === 'buy') {
-                    // Здесь в будущем будет вызов платежа (Invoice)
-                    tg.showAlert('Payment Gateway Initiated.\n(Demo Mode)');
-                }
-            });
-        }
-
-        // Запускаем проверку при старте
-        checkStartParam();
-
-    </script>
+  <!-- JavaScript -->
+  <script src="script.js"></script>
 </body>
 </html>
