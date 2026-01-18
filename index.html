@@ -4,43 +4,48 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NUMENE Mini App</title>
-  <!-- Цвета для статус-бара/тулбара и ссылка на manifest -->
-  <meta name="theme-color" content="#f5e1a4">
-  <link rel="manifest" href="manifest.json">
-  <!-- Подключаем CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Экран загрузки (Boot) -->
-  <div id="boot">
-    <h1>NUMENE</h1>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
+  <div id="status-screen" class="screen active">
+    <div id="code-section">
+      <h2>Введите код доступа:</h2>
+      <form id="codeForm">
+        <input type="text" id="codeInput" placeholder="Код (например 4-2-4)" autofocus>
+        <button type="submit">Отправить</button>
+      </form>
+      <p id="error" style="color: red;"></p>
     </div>
-    <p id="boot-text">Загрузка 0%</p>
-  </div>
-
-  <!-- Экран терминала -->
-  <div id="terminal">
-    <div id="terminal-content">
-      <!-- Здесь будем выводить текст как в консоли -->
-      <pre id="terminalText"></pre>
-      <!-- Мерцающий курсор -->
-      <span id="cursor">█</span>
+    <div id="access-section" style="display: none;">
+      <h1 id="accessTitle">ACCESS GRANTED</h1>
+      <div id="red-eye"></div>
+      <button id="continueBtn">CONTINUE</button>
     </div>
   </div>
 
-  <!-- Экран «Puzzle» с вводом кода -->
-  <div id="puzzle">
-    <div id="puzzle-content">
-      <p>Введите код доступа:</p>
-      <input id="codeInput" type="text" placeholder="Код доступа" autocomplete="off">
-      <button id="submitBtn">Отправить</button>
-      <p id="result"></p>
-    </div>
+  <div id="plot-screen" class="screen">
+    <h1>Protocol DUAT Activated</h1>
+    <p>Протокол DUAT активирован. Нажмите кнопку ниже, чтобы продолжить.</p>
+    <iframe width="560" height="315" 
+      src="https://www.youtube.com/embed/M7lc1UVf-VE" 
+      title="Protocol DUAT Video" frameborder="0" 
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+      allowfullscreen>
+    </iframe>
+    <button id="to-quest-btn">Enter the Protocol</button>
   </div>
 
-  <!-- JavaScript -->
+  <div id="quest-screen" class="screen">
+    <h1>Quest</h1>
+    <div id="clue">
+      <img src="https://images.unsplash.com/photo-1765445666594-b233a0a9b9ce?fm=jpg&q=60&w=800" alt="Clue image" />
+    </div>
+    <p>Ваш ответ:</p>
+    <input type="text" id="answerInput" placeholder="Ответ">
+    <button id="submitAnswer">Отправить</button>
+    <p id="resultMessage"></p>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
