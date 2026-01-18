@@ -82,7 +82,7 @@ function startTyping() {
 // Обработка нажатия кнопки Отправить
 submitBtn.addEventListener('click', () => {
   const entered = codeInput.value.trim().toUpperCase();
-  if (entered === 'NUMENE') {
+  if (entered === '4-2-4') {
     resultP.style.color = '#d4af37'; // золотистый цвет при успехе
     resultP.textContent = 'Доступ получен';
   } else {
